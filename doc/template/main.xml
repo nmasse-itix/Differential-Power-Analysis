@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+  "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<book>
+  <!-- Metadata -->
+  <bookinfo>
+    <title>Title</title>
+    <author>
+      <firstname>John</firstname><surname>SMITH</surname>
+      <affiliation>
+        <orgname>ACME corp.</orgname>
+        <orgdiv>IT dept.</orgdiv>
+      </affiliation>
+      <email>john@acme.com</email>
+    </author>
+    <copyright>
+        <year>2000</year>
+        <holder>ACME corp.</holder>
+    </copyright>
+  </bookinfo>
+
+  <preface>
+    <title>Foreword</title>
+    <para></para>
+  </preface>
+
+  <chapter>
+    <title>My First Document with Docbook</title>
+    <sect1>
+      <title>What is docbook ?</title>
+      <para>A paragraph</para>
+    </sect1>
+  </chapter>
+</book>
+

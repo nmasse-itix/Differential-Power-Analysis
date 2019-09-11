@@ -1,0 +1,1367 @@
+<?xml version='1.0'?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN" "file:docbook/docbookx.dtd">
+<book lang="fr">
+
+  <bookinfo>
+
+    <title>Laboratoire d&apos;attaques par analyse de courant</title>
+
+    <subtitle>Rapport de projet</subtitle>
+
+    <author>
+
+      <firstname>Nicolas</firstname>
+      <surname>MASSÉ</surname>
+      <affiliation><orgname>ENSICAEN</orgname></affiliation>
+
+      <email>nicolas27.masse@laposte.net</email>
+
+    </author>
+
+    <author>
+
+      <firstname>Thomas</firstname>
+      <surname>LIMIN</surname>
+      <affiliation><orgname>ENSICAEN</orgname></affiliation>
+
+      <email>thomas.limin@laposte.net</email>
+
+    </author>
+
+    <abstract>
+
+      <para>Les fabricants de matériels &quot;sensibles&quot; ont 
+      besoin d&apos;outils à même d&apos;évaluer les performances des 
+      contre-mesures face aux attaques par canaux secondaires. Ce 
+      rapport de projet détaille notre travail autour d&apos;un 
+      laboratoire d&apos;attaques par analyse de courant pour la société 
+      Ingenico.</para>
+
+      <para>
+      Mots clés : Analyse de courant, DPA, Side Channel, Laboratoire d'attaques.
+      </para>
+    </abstract>
+
+    <abstract lang="en">
+
+      <para>&quot;Sensitive&quot; hardware's manufacturers need a tool
+      to evaluate the achievement of the countermesures against side channel 
+      attacks. This project report details our work about an attack laboratory
+      based on power analysis for the company Ingenico.</para>
+
+    </abstract>
+
+  </bookinfo>
+
+  <preface>
+
+    <title>Remerciements</title>
+
+    <para>Nous avons bénéficié du soutien et des conseils de nombreuses 
+    personnes tout au long de ce projet. Qu&apos;elles en soient ici 
+    remerciées.</para>
+
+    <itemizedlist>
+
+      <listitem>
+
+        <para>M. NACCACHE, Chief scientist chez Ingénico, notre tuteur 
+        entreprise, pour nous avoir confié ce projet passionnant et 
+        pour avoir orienté nos recherches.</para>
+
+      </listitem>
+
+      <listitem>
+
+        <para>M. OTMANI, professeur à l&apos;ENSICAEN, notre tuteur 
+        école, pour ses conseils et le temps qu&apos;il a consacré au 
+        suivi du projet.</para>
+
+      </listitem>
+
+      <listitem>
+
+        <para>M. CUOZZO et M. PASQUET, professeurs à l&apos;ENSICAEN, 
+        pour leur aide précieuse.</para>
+
+      </listitem>
+
+      <listitem>
+
+        <para>M. PAILLIER, chercheur chez Gemalto, pour nous avoir 
+        fourni des informations et un ensemble de données pour 
+        appliquer la DPA et la CPA.</para>
+
+      </listitem>
+
+      <listitem>
+
+        <para>M. EL HAIDACHE et M. QEBIBO, élève ingénieurs ENSICAEN, 
+        spécialité électronique, pour avoir pris en charge la partie 
+        acquisition du laboratoire d&apos;attaques.</para>
+
+      </listitem>
+
+    </itemizedlist>
+
+  </preface>
+
+  <preface>
+
+    <title>Introduction</title>
+
+    <para>La troisième année de cycle ingénieur à l&apos;ENSICAEN nous 
+    a offert la possibilité de nous impliquer dans un projet de fin 
+    d&apos;étude en lien avec le monde professionnel. Issus de la 
+    spécialité monétique et sécurité des systèmes, nous avons travaillé 
+    avec la société Ingénico, spécialiste mondial des terminaux de 
+    paiement et des transactions sécurisées.</para>
+
+    <para>Les systèmes dont la sécurité revêt un caractère critique, 
+    comme c&apos;est le cas pour les terminaux de paiement électronique 
+    doivent, depuis peu, faire face à des attaques qui dépassent le 
+    cadre de la cryptanalyse classique. En effet, l&apos;aspect 
+    matériel et électronique est pris en compte par les cryptanalystes, 
+    par le biais de la mesure du temps d&apos;exécution, de 
+    l&apos;électricité consommée ou des émanations électro-magnétiques 
+    (voir <xref linkend="Kocher98"/>). Ces informations issues des 
+    &quot;canaux secondaires&quot; divulguent, une fois analysées, une 
+    part souvent non négligeable des secrets.</para>
+
+    <para>Face à cette menace, des contre mesures efficaces doivent 
+    être intégrées aux matériels. Ingénico est impliqué dans ce 
+    processus, et doit à tout moment s&apos;assurer de 
+    l&apos;efficacité de leur parades. Un outil adapté leur étant 
+    nécessaire, Ingenico a proposé le développement d&apos;un 
+    laboratoire d&apos;attaques par analyse de courant</para>
+
+    <para>Ce projet a donc pour objectif la réalisation d&apos;un outil 
+    permettant d&apos;appliquer des attaques par 
+    DPA<footnote><para>Differential Power Analysis, attaque par analyse 
+    différentielle de courant</para></footnote>. Nous approfondirons 
+    dans une première partie le sujet, le contexte et 
+    l&apos;organisation du projet. La seconde partie sera consacrée aux 
+    détails des attaques par canaux secondaires. Elle explicitera les 
+    fondements et les principes de base de ces attaques, puis 
+    quantifiera leur efficacité. La troisième partie s&apos;appliquera 
+    à présenter le travail réalisé et les difficultés surmontées, puis 
+    concluera en dressant l&apos;état d&apos;avancement du 
+    laboratoire.</para>
+
+  </preface>
+
+  <chapter>
+
+    <title>Présentation du projet</title>
+
+    <para />
+
+    <sect1>
+
+      <title>Contexte</title>
+
+      <para>La sécurité des télécommunications repose sur la fiabilité 
+      des cryptosystèmes employés et sur la non divulgation des clefs 
+      de chiffrement/déchiffrement. Principalement axée sur la 
+      recherche des faiblesses intrinsèques des algorithmes utilisés, 
+      la cryptanalyse s&apos;intéresse depuis peu au matériel 
+      supportant les applications cryptographiques. En effet, bien que 
+      souvent considérés comme des environnements clos et dignes de 
+      confiance, les composants électroniques peuvent eux aussi laisser 
+      échapper des informations concernant les secrets manipulés. Les 
+      attaques basées sur ce constat, regroupées sous la dénomination 
+      &quot;attaque par canal secondaire&quot; (Side Channel Attack) 
+      peuvent mettre à bas des cryptosystèmes pourtant réputés 
+      surs.</para>
+
+    </sect1>
+
+    <sect1>
+
+      <title>Origine de la proposition</title>
+
+      <para>Le sujet émane de la société Ingenico, spécialiste mondial 
+      des solutions de transactions sécurisées.</para>
+
+      <para>Créé en France en 1980, le groupe est maintenant implanté 
+      dans toute l&apos;Europe de l&apos;ouest, mais aussi aux 
+      États-Unis,en Amérique latine, en Chine, au Japon, en Australie 
+      et dans de nombreux autres pays d&apos;Europe de l&apos;Est, 
+      d&apos;Asie et d&apos;Afrique.</para>
+
+      <para>Ingenico détient la base installée de terminaux de paiement 
+      (plus de 350.000 appareils) la plus importante de France. La 
+      fusion-absorption de MoneyLine par Ingenico intervenue le 31 
+      octobre 2006 a fait en outre d&apos;Ingenico le leader des 
+      solutions monétiques pour la grande distribution et le commerce 
+      organisé.</para>
+
+    </sect1>
+
+    <sect1>
+
+      <title>Intérêt du projet</title>
+
+      <para>Impliqué dans le développement et la fabrication de 
+      terminaux de paiement, Ingenico se trouve confronté, en tant que 
+      fournisseur de matériels effectuant des opérations 
+      cryptographiques sensibles (transactions bancaires), aux 
+      éventuelles fuites d&apos;information engendrées par des attaques 
+      par canaux secondaires. La mise en place de contremesures est 
+      indispensable, tout comme la mesure de leur efficacité en vue 
+      d&apos;obtenir les certifications nécessaires.</para>
+
+      <figure id="flowcert.png">
+
+        <title>Place du laboratoire d&apos;attaques dans la chaîne de 
+        certification</title>
+
+        <mediaobject><imageobject><imagedata fileref="flowcert.png"
+         format="PNG" width="100%"/></imageobject></mediaobject>
+      </figure>
+
+      <para>L&apos;attaque par canal secondaire la plus efficace à ce 
+      jour reposant sur une analyse de la consommation électrique des 
+      composants, Ingénico doit se doter d&apos;un laboratoire 
+      d&apos;attaques par analyse de courant. Ce laboratoire doit être 
+      capable d&apos;appliquer les attaques en vue d&apos;apprécier la 
+      résistances des contres-mesures, logicielles ou matérielles 
+      intégrées aux composants.</para>
+
+      <para>Disposer en interne d&apos;un tel outil permettra à 
+      Ingenico d&apos;effectuer des tests poussés de ses produits avant 
+      soumission aux organismes de certification, et ainsi de 
+      s&apos;assurer d&apos;obtenir rapidement les autorisations de 
+      mise sur le marché. En effet, le processus de certification est 
+      un processus qui peut être long et coûteux, d&apos;autant plus en 
+      cas de non conformité du produit. Il est donc impératif pour 
+      Ingenico de proposer à la certification des produits fortement 
+      testés pour réduire le &quot;time to market&quot;.</para>
+
+    </sect1>
+
+    <sect1>
+
+      <title>Objectifs du projet</title>
+
+      <para>Il s&apos;agit de mettre au point un laboratoire de test 
+      permettant l&apos;évaluation de la sécurité des composants de 
+      terminaux face aux attaques par analyse de courant. La résistance 
+      sera évaluée en fonction du nombre de couples données 
+      manipulées/traces de consommations nécessaires pour obtenir le 
+      secret. Lorsque ce nombre surpasse ce qu&apos;il est possible 
+      d&apos;obtenir (cette quantité peut, par exemple, excéder la 
+      durée de vie de la carte à puce), alors il est possible de 
+      conclure que les contres mesures sont efficaces.</para>
+
+      <para>Le laboratoire d'attaque peut se décomposer en deux modules distincts</para>
+
+      <para>Le premier module, appelé &quot;chaîne d'acquisition&quot; devra permettre
+      la capture des consommations électriques d&apos;une maquette équippée d&apos;un 
+      microprocesseur ARM. ARM est le type de microprocesseur retenu par Ingenico car
+      c'est la principale architecture embarquée dans les terminaux de paiement
+      électronique. La chaîne d'acquisition se compose:
+
+        <itemizedlist>
+
+	  <listitem>
+
+	    <para>D'un point de mesure de la consommation de courant sur la maquette.
+	    Une version simple peut se résumer à une résistance de faible impédance
+	    placée entre l'alimentation et la broche Vcc du microprocesseur. La tension
+	    mesurée aux bornes de cette résistance permet d'obtenir la consommation.	    
+	    </para>
+	    
+	  </listitem>
+	  
+	  <listitem>
+	    
+	    <para>D'un oscilloscope numérique permettant un échantillonnage haute fréquence
+	    (de l'ordre de 500 Mhz) et capable de stocker temporairement tous les échantillons
+	    </para>
+	    
+	  </listitem>
+	  
+	  <listitem>
+	    
+	    <para>D'un ordinateur relié à l'oscilloscope pour récupérer en quasi temps réel les
+	    mesures, et programmé pour stocker ces résultats pour exploitation ultérieure
+	    (lot de fichiers, type trace001, trace002 etc...)</para>
+	
+	  </listitem>
+
+	  <listitem>
+	    
+	    <para>D'une méthode de synchronisation entre l'algorithme de
+	    chiffrement s'exécutant sur la maquette et l'oscilloscope, afin d'obtenir des
+	    traces de consommation correspondant toutes à la même phase de l'algorithme.
+	    </para>
+	    
+	  </listitem>
+      
+	</itemizedlist>
+
+      </para>
+	
+      <para>Le second module correspond aux attaques cryptanalytiques. Il repose sur
+      l'implémentation d'algorithmes d'attaque. Ces programmes seront exécutés sur une
+      machine distincte et s'appuieront sur les données récoltées par la chaîne
+      d'acquisition pour extraire les secrets de la simple consommation de courant.
+      Les attaques qui seront implémentées s'articuleront autour de:
+
+
+        <itemizedlist>
+
+	  <listitem>
+
+	    <para>Attaque par analyse différentielle de courant, dite DPA (Differential
+	    Power Analysis)
+	    </para>
+	    
+	  </listitem>
+	  
+	  
+	  <listitem>
+	    
+	    <para>Attaque par analyse de la corrélation du courant, dite CPA (Correlation
+	    Power Analysis)</para>
+	
+	  </listitem>
+	</itemizedlist>
+
+	La réalisation de ce second module est le point central de notre projet.
+      </para>
+
+      </sect1>
+
+    <sect1>
+
+      <title>Moyens</title>
+
+      <para>Étant en filière informatique, nous disposons d'une journée et demi par 
+      semaine pour travailler le projet : le lundi et le jeudi matin. Mais 
+      suivant par ailleurs les cours de Master Recherche Algorithmes et 
+      Modèles de l&apos;Information le lundi, nous sommes obligés de 
+      répartir l&apos;équivalent d&apos;une journée de travail sur la 
+      semaine. Au total, nous représentons 3 jours-homme par semaine. 
+      Le projet s&apos;étalant de la semaine 4 (9 octobre, calendrier 
+      ensicaen) à la semaine 17 (5 février, calendrier ensicaen), il 
+      est réparti sur 13 semaines. De plus, 5 jours entiers sont dédiés 
+      au projet : 8 au 12 janvier 2007 (10 jours-homme). Nous disposons 
+      donc, théoriquement pour ce projet de 49 jours hommes. Des 
+      modifications d&apos;emploi du temps ont toutefois réduit ce 
+      capital.</para>
+
+      <para>Afin de nous prêter main forte, deux élèves de la filière 
+      électronique nous ont rejoint et contribuent au projet à 
+      hauteur de 34 jours-homme. Les moyens humains alloués au projet 
+      totalisent donc 83 jours-homme.</para>
+
+    </sect1>
+
+    <sect1>
+
+      <title>Répartition du travail</title>
+
+      <para>L&apos;objectif global du projet est de mettre en place un 
+      outil qui permet de tester la résistance d&apos;un dispositif 
+      cryptographique aux attaques par DPA. Il est divisé en deux 
+      sous-objectifs : acquérir les traces de courant (acquisition) et 
+      les traiter (traitement). L&apos;aquisition est réalisée par M. 
+      EL HAIDACHE et M. QEBIBO, élèves ingénieurs issus de la filière électronique. La 
+      réalisation du traitement nous incombe.</para>
+
+      <para>Afin de permettre un travail délocalisé dans le temps et 
+      dans l&apos;espace, nous avons défini en collaboration avec nos 
+      collègues les pré-requis et les objectifs de 
+      chacun des sous-objectifs.</para>
+
+      <figure id="organisation.png">
+
+        <title>Répartition du travail</title>
+
+        <mediaobject><imageobject><imagedata fileref="organisation.png"
+         format="PNG" width="60%"/></imageobject></mediaobject>
+      </figure>
+
+      <sect2 renderas="sect3">
+
+        <title>Pré-requis de l&apos;acquisition</title>
+
+        <para>Pendant la phase d&apos;acquisition, 
+        l&apos;expérimentateur a à sa disposition un oscilloscope 
+        numérique avec une connexion PC, une sonde et les logiciels 
+        adéquats (Matlab / Labview / Mathematica). De plus, on émet 
+        l&apos;hypothèse que le calcul cryptographique peut être 
+        délimité facilement (utilisation des 
+        GPIO<footnote><para>General Purpose Input 
+        Output. Il est possible de programmer l'algorithme de chiffrement de sorte qu'il
+	envoie une information via ce port de communication au début et à la fin du
+	chiffrement. Cette information peut alors être utilisée pour synchroniser la chaîne
+	d'acquisition.</para></footnote> par exemple).</para>
+
+      </sect2>
+
+      <sect2 renderas="sect3">
+
+        <title>Objectif de l&apos;acquisition / pré-requis du 
+        traitement</title>
+
+        <para>Le but de l&apos;acquisition est de fournir des traces de 
+        courant associées à leur chiffré (la trace doit être délimitée 
+        et utilisable informatiquement). Ces données seront utilisées 
+        par la partie traitement.</para>
+
+      </sect2>
+
+      <sect2 renderas="sect3">
+
+        <title>Objectif du traitement</title>
+
+        <para>La phase de traitement a pour but de déterminer le nombre 
+        de traces de courant nécessaires pour trouver la clé d&apos;une 
+        opération cryptographique.</para>
+
+      </sect2>
+
+    </sect1>
+
+  </chapter>
+
+  <chapter>
+
+    <title>Travail effectué</title>
+
+    <sect1>
+
+      <title>Organisation</title>
+
+      <para>Le projet étant divisé en deux grandes parties (acquisition 
+      et traitement), chacune traitée par un groupe de personnes 
+      différent, il était primordial de trouver un outil de 
+      communication simple et efficace. Nous avons décidé, après étude, 
+      d&apos;utiliser le logiciel Trac. C&apos;est une application web 
+      de gestion des sources (SCM) et de gestion de projet intégré. Il 
+      est très adapté pour les petits projets (quelques dizaines de 
+      personnes) et est utilisé par beaucoup de projets Open Source. Il 
+      nous permet de travailler de manière désynchronisée dans le temps 
+      et dans l&apos;espace avec nos collègues, via 
+      l&apos;url <ulink url="https://projects.itix.fr/studies/DPA/"/> 
+      .</para>
+
+    </sect1>
+
+    <sect1>
+
+      <title>Diagramme de Gantt</title>
+
+      <para>
+
+        La 
+        <xref linkend="gantt.png"/>
+         présente les différentes tâches de notre projet. La 
+        signification des couleurs est la suivante:
+        <itemizedlist spacing="compact">
+
+          <listitem>
+
+            <para>Le vert correspond aux tâches communes de 
+            documentation</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Le jaune définit les tâches propres à la partie 
+            acquisition</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>En bleu sont regroupées les tâches de traitement, 
+            c&apos;est le corps de notre travail</para>
+
+          </listitem>
+
+        </itemizedlist>
+
+      </para>
+
+      <para>La barre noire au centre de chaque tâche représente son 
+      état d&apos;avancement.</para>
+
+      <figure id="gantt.png">
+
+        <title>Diagramme de Gantt</title>
+
+        <mediaobject><imageobject><imagedata fileref="gantt.png"
+         format="PNG" width="100%"/></imageobject></mediaobject>
+      </figure>
+
+      <para>Durant l&apos;étape &quot;recherche documentaire&quot; nous 
+      avons réalisé une étude approfondie des techniques d&apos;attaque 
+      par canaux secondaires, qui comprend les attaques par analyse de 
+      courant (SPA, DPA, CPA). Elle fait l&apos;objet du 
+      <xref linkend="ch_dpa"/></para>
+
+      <sect2 renderas="sect3">
+
+        <title>Élaboration du diagramme de Gantt</title>
+
+        <para>Suite à la spécification des besoins de ce projet, nous 
+        nous sommes appliqués à définir une liste précise de tâches 
+        finement délimitées et à les échelonner dans le temps en 
+        fonction de leurs liens de précédence.</para>
+
+        <para>Cette approche nous a permis, d&apos;une part, 
+        d&apos;évaluer plus précisément le temps nécessaire pour mener à 
+        bien le projet. D&apos;autre part, nous avons pu mesurer au fur 
+        et à mesure l&apos;avancée du projet, et ainsi éviter 
+        l&apos;effet tunnel.</para>
+
+        <para>Un dernier avantage de ce découpage est qu&apos;il nous a 
+        été possible de recetter individuellement les tâches, des tests 
+        ayant été écrits pour valider le bon fonctionnement de chaque 
+        nouvelle tâche.</para>
+
+      </sect2>
+
+      <sect2 renderas="sect3">
+
+        <title>Suivi des prévisions</title>
+
+        <para>L&apos;importance que nous avons accordé à la 
+        plannification du projet nous a permis de bien démarrer le 
+        projet et de pouvoir accorder un temps suffisant à chaque 
+        partie, sans craindre la prise de retard.</para>
+
+        <para>Dans un premier temps, nous avons pu réaliser nos tâches 
+        dans le temps imparti, mais les problèmes que nous avons 
+        rencontrés, en particulier les soucis autour de la fourniture de 
+        la maquette et des algorithmes ont finalement eu raison de 
+        notre ponctualité.</para>
+
+      </sect2>
+
+    </sect1>
+
+    <sect1>
+
+      <title>Problèmes rencontrés</title>
+
+      <para>Au fur et à mesure de l&apos;avancement du projet nous 
+      avons rencontré un certain nombre de difficultés.</para>
+
+      <sect2 renderas="sect3">
+
+        <title>Traitement dépendant de l&apos;acquisition</title>
+
+        <para>Le premier problème auquel nous avons dû faire face est 
+        la dépendance des parties acquisition et traitement. En effet, 
+        afin de vérifier la validité de nos algorithmes nous avions 
+        besoin des données (traces de courant et messages chiffrés) 
+        produites par l'équipe travaillant sur la partie acquisition. Il est 
+        clair que nous ne pouvions attendre que nos collègues aient 
+        fini leur partie pour commencer à travailler. Nous avons alors 
+        décidé d&apos;utiliser un modèle mathématique pour générer des 
+        traces de courant. Ce modèle étant assez éloigné de la réalité, 
+        un second problème s&apos;est alors posé : l&apos;algorithme ne 
+        se comportait pas comme prévu, nous obligeant alors à appliquer 
+        du traitement de signal à certains moments de 
+        l&apos;algorithme.</para>
+
+      </sect2>
+
+      <sect2 renderas="sect3">
+
+        <title>Implémentation sous Mathematica</title>
+
+        <para>Initialement, le descriptif du projet prévoyait une 
+        implémentation des algorithmes sous Mathematica, un langage de 
+        calcul formel. L&apos;obtention de ce logiciel nous aurait très 
+        certainement posé problème, c&apos;est pouquoi nous lui avons 
+        préféré le logiciel de calcul matriciel Matlab, dont une 
+        version est fournie par l&apos;école. De plus, ayant déjà 
+        utilisé Matlab auparavant, nous n&apos;avions pas à apprendre 
+        un nouveau langage. Nous avons mentionné ce point dans le 
+        cahier des charges et cela a été validé.</para>
+
+      </sect2>
+
+      <sect2 renderas="sect3">
+
+        <title>Absence de la maquette ARM</title>
+
+        <para>Dès le début du projet, il a été convenu que nous aurions 
+        accès à une maquette de test afin de recueillir les données 
+        nécessaires à la validation de notre travail. Cette maquette 
+        comporte un microprocesseur de type ARM sur lequel nos 
+        collègues auraient pu brancher un oscilloscope numérique et 
+        acquérir les traces de courant. Malheureusement, malgré nos 
+        demandes répétées et l&apos;intervention de M. CUOZZO auprès 
+        d&apos;Ingénico nous n&apos;avons toujours pas reçu cette 
+        maquette. Son absence fût fort dommageable pour 
+        l&apos;avancement du projet. En effet, sans elle la validation 
+        des algorithmes fût lente et difficile.</para>
+
+		<para>Ne pouvant obtenir la maquette auprès d'Ingénico, nous nous
+		sommes alors tournés vers Pascal PAILLIER, chercheur chez Gemalto, lors de
+		son intervention à l'université de CAEN. Il nous a aimablement fourni
+		des informations et un ensemble de données permettant de tester nos
+		implémentations. Ces données comprennent :
+		<itemizedlist spacing="compact">
+
+          <listitem><para>40 traces d'émanation radio-fréquence (100 µs échantillonnées
+	  à 500 MHz) d'une carte à puce exécutant un DES,</para></listitem>
+
+          <listitem><para>5000 traces de courant d'une carte à puce exécutant une 
+          exponentiation modulaire RSA.</para></listitem>
+        </itemizedlist>
+		</para>
+
+      </sect2>
+
+    </sect1>
+
+    <sect1>
+
+      <title>État d&apos;avancement</title>
+
+      <para>Comme convenu dans le cahier des charges, nous avons 
+      implémenté les algorithmes nécessaires à la mise en place du 
+      laboratoire d&apos;attaques. Néanmoins les tâches nécessitant la 
+      maquette ARM n&apos;ont pu être menées à terme (benchmarking 
+      d&apos;algorithmes, prise en main de la plateforme ARM, tests et 
+      validation). Au vu de l&apos;avancement du projet et du temps 
+      restant, nous avons choisi de ne pas débuter la phase 
+      d&apos;implémentation. De plus, les algorithmes n&apos;ayant pas 
+      pu être validés rigoureusement, il serait futile de vouloir les 
+      transcrire dans un langage bas niveau, toute correction ou 
+      amélioration impliquant de très lourdes modifications dans le
+      code transcrit.</para>
+
+      <para>Afin de palier à l&apos;absence de validation rigoureuse (due à 
+      l&apos;absence de la maquette) et 
+      d&apos;implémentation dans un langage bas niveau, nous proposons 
+      à Ingénico de procéder à la validation des algorithmes au sein de 
+      leur laboratoire, d&apos;y appliquer les éventuelles 
+      modifications et enfin d&apos;utiliser l&apos;outil 
+      <emphasis>Matlab Compiler</emphasis><footnote><para>Matlab 
+      Compiler permet de traduire automatiquement du code Matlab en 
+      C/C++, Java ou .Net</para></footnote> afin de transcrire 
+      automatiquement le code Matlab dans un langage bas niveau. Le 
+      code résultant peut ensuite être intégré à une application 
+      métier.</para>
+
+    </sect1>
+
+    <sect1>
+
+      <title>Descriptif du produit livré</title>
+
+      <para>Le produit que nous livrons à Ingénico est composé de deux 
+      ensembles : les algorithmes du laboratoire d&apos;attaques et une 
+      documentation. Les algorithmes sont implémentés à l&apos;aide de 
+      Matlab. Ils comprennent une implémentation du DES, de la DPA, de 
+      la CPA et un modèle de consommation de courant. La documentation 
+      détaillée des attaques par analyse de courant est présentée 
+      <xref linkend="ch_dpa"/>. Elle est aussi disponible en ligne<footnote>
+      <para>La documentation est accessible via <ulink 
+      url="https://projects.itix.fr/studies/DPA/"/></para></footnote>,
+      ce présent rapport et une soutenance orale la complètant.</para>
+
+    </sect1>
+
+    <sect1>
+
+      <title>Résultats obtenus</title>
+      
+      <para>
+        L'objectif du laboratoire d'attaque est de tester l'efficacité des 
+        contremesures. Ainsi il doit être en mesure de trouver le secret (en totalité ou 
+        en partie) utilisé lors d'une opération cryptographique. 
+      </para>
+      
+      <para>
+        Cet objectif est atteint. En effet, notre implémentation de l'algorithme
+        de la DPA a, avec succès, retrouvé une sous-clé DES (48 bits) en 
+        utilisant environ 200 traces de courant, et ce en 10 minutes sur un PC personnel.
+      </para>
+      
+      <para>
+        Notre implémentation de l'algorithme de la CPA a quant à elle 
+        retrouvé une sous-clé DES en utilisant 40 traces d'émanations 
+        radio-fréquence, et ce en 20 minutes sur un PC personnel.
+      </para>
+	</sect1>
+	
+  </chapter>
+
+  <chapter id="ch_dpa">
+
+    <title>Analyse de courant</title>
+
+    <para>Traditionnellement, les cryptanalystes se basent sur les 
+    propriétés mathématiques des algorithmes cryptographiques pour en 
+    trouver les faiblesses, mais depuis peu sont apparues de nouvelles 
+    méthodes de cryptanalyse, visant non plus les propriétés 
+    mathématiques mais leur implémentation. Cette nouvelle approche 
+    rassemble les attaques par canal secondaire. On dit qu&apos;une 
+    telle attaque est possible lorsqu&apos;un attaquant a accès à de 
+    l&apos;informations fournie à son insu par l&apos;implémentation 
+    d&apos;un algorithme cryptographique. Ces informations ne sont ni 
+    le texte clair ni le texte chiffré, c&apos;est pour cette raison 
+    que l&apos;on parle de canal secondaire. (cf. 
+    <xref linkend="Kelsey00"/> et <xref linkend="Barel"/>)</para>
+
+    <figure id="side-channels.png">
+
+      <title>Principe des canaux secondaires</title>
+
+      <mediaobject><imageobject><imagedata fileref="side-channels.png"
+       format="PNG" width="100%"/></imageobject></mediaobject>
+    </figure>
+
+    <para>
+
+      Il existe plusieurs canaux secondaires :
+      <itemizedlist spacing="compact">
+
+        <listitem>
+
+          <para>la consommation de courant</para>
+
+        </listitem>
+
+        <listitem>
+
+          <para>les radiations électromagnétiques</para>
+
+        </listitem>
+
+        <listitem>
+
+          <para>les sons (pour les systèmes mécaniques)</para>
+
+        </listitem>
+
+        <listitem>
+
+          <para>les informations temporelles (cf. 
+          <xref linkend="Percival"/>)</para>
+
+        </listitem>
+
+      </itemizedlist>
+
+    </para>
+
+    <para>En 1998 Paul Kocher a annoncé une nouvelle méthode de 
+    cryptanalyse : l&apos;attaque par analyse de courant. Cette attaque 
+    repose sur le fait que les circuits intégrés sont composés de 
+    portes logiques qui, lorsqu&apos;elles changent d&apos;état, 
+    consomment une certaine quantité de courant. En mesurant cette 
+    consommation et en la mettant en rapport avec certains bits des 
+    données de la clé secrète, on peut retrouver cette dernière. Par 
+    exemple, il peut arriver que lors de l&apos;exécution d&apos;un 
+    algorithme, la condition d&apos;un branchement s&apos;appuie sur la 
+    valeur d&apos;un bit d&apos;une information secrète, comme la clef 
+    par exemple. Les sauts engendrant des différences importantes dans 
+    la consommation de courant, il est relativement trivial de détecter 
+    si le saut a eu lieu, et donc d&apos;obtenir de l&apos;information 
+    sur la valeur utilisée dans la condition du branchement. Il existe 
+    différents types d&apos;attaques, que l&apos;on peut classer en 
+    deux catégories : les attaques simples et les attaques 
+    différentielles.</para>
+
+    <sect1>
+
+      <title>Modèle de fuite</title>
+
+      <para>La <xref linkend="leak.png"/> est un modèle simplifié 
+      d&apos;une carte à puce qui permet de mieux comprendre 
+      l&apos;origine des fuites d&apos;information. La carte est 
+      normalement alimentée en 5V entre Vdd et Vss mais si l&apos;on 
+      place une faible résistance (quelques Ohms) entre Vdd et la 
+      masse, on peut mesurer la consommation de courant à l&apos;aide 
+      d&apos;un oscilloscope.</para>
+
+      <para>Dans un circuit CMOS la consommation de courant a 
+      majoritairement lieu lors des changements d&apos;état. Lorsque 
+      Vgate change de voltage, les transistors Q1 et Q2 sont tous les 
+      deux conducteurs pendant un très court instant, créant ainsi une 
+      légère surconsommation de courant. Pendant ce temps, le 
+      condensateur Cload est déchargé (ou chargé) diminuant (ou 
+      augmentant) la consommation de courant. Il y a ainsi deux types 
+      de fuite d&apos;information : celles liées au poids de Hamming 
+      (état de Cload) et celles liées au nombre de transitions 
+      (changement d&apos;état de Vgate).</para>
+
+      <figure id="leak.png">
+
+        <title>Mesure de la consommation de courant</title>
+
+        <mediaobject><imageobject><imagedata fileref="leak.png"
+         format="PNG" width="100%"/></imageobject></mediaobject>
+      </figure>
+
+      <para>Une grande partie des fuites d&apos;information est due 
+      aux bus de communication du microprocesseur. Il est intéressant 
+      de noter que les bus préchargés (cf. <xref linkend="app_schemas"/>
+       ) sont très intéressants lors des attaques par analyse de 
+      courant. En effet, avec ce type de bus on connait toujours la 
+      valeur présente sur ce dernier avant une transition. Ainsi, le 
+      nombre de zéros chargés sur le bus détermine la quantité de 
+      courant déchargée (l&apos;état de Cload est la source de courant 
+      prédominante).</para>
+
+      <para>Lorsque le système analysé n&apos;utilise pas les bus 
+      préchargés, il est fort probable que la valeur précédente du bus 
+      soit une constante (une adresse mémoire par exemple). On peut 
+      alors déterminer par mesure du courant le nombre de changements 
+      d&apos;état sur le bus (le changement d&apos;état de Vgate est la 
+      source de courant prédominante). Pour de plus amples détails, 
+      voir <xref linkend="Messerges99"/>.</para>
+
+    </sect1>
+
+    <sect1 id="sec_spa">
+
+      <title>Attaques par analyse simple de courant</title>
+
+      <para>Dans les attaques par SPA, on mesure le courant consommé de 
+      manière très précise dans le temps (haute fréquence 
+      d&apos;échantillonnage) puis, visuellement, on identifie les 
+      différentes parties de l&apos;algorithme et enfin on analyse les 
+      différentes opérations effectuées afin d&apos;en déduire des 
+      informations sur le secret.</para>
+
+      <para>Par exemple, la forme de la courbe de courant sur la 
+      <xref linkend="spa.png"/> permet de retrouver tous les bits de la 
+      clé secrète <emphasis>d</emphasis> utilisée lors d&apos;une 
+      signature RSA. En effet, l&apos;exponentiation modulaire 
+      <emphasis>s = m<superscript>d</superscript></emphasis> mod 
+      <emphasis>e</emphasis> est souvent implémentée à l&apos;aide de 
+      l&apos;algorithme Carré-Multiplier (&quot;Square and 
+      Multiply&quot; en anglais). Ce dernier consiste, pour chacun des 
+      bits de l&apos;exposant <emphasis>d</emphasis> (la clé secrète), 
+      à mettre la variable <emphasis>s</emphasis> au carré et si et 
+      seulement si ce bit vaut 1, la multiplier par 
+      <emphasis>m</emphasis>. Ainsi, il suffit d&apos;observer la trace 
+      de courant pour différencier les carrés (ils sont identiques) des 
+      multiplications (elles ne se ressemblent pas et sont toujours 
+      suivies d&apos;un carré). Il également intéressant de noter que le 
+      premier bit valant toujours 1, les deux premières opérations sont 
+      toujours un carré puis une multiplication.</para>
+
+      <figure id="spa.png">
+
+        <title>Attaque par SPA sur une exponentiation modulaire 
+        RSA</title>
+
+        <mediaobject><imageobject><imagedata fileref="spa.png"
+         format="PNG" width="100%"/></imageobject></mediaobject>
+      </figure>
+
+      <para>Cette attaque a l&apos;avantage d&apos;être simple, mais 
+      elle a de nombreux inconvénients : elle nécessite une haute 
+      fréquence d&apos;échantillonnage, elle est difficilement 
+      automatisables et ses contremesures sont simples.</para>
+
+    </sect1>
+
+    <sect1 id="sec_dpa">
+
+      <title>Attaques par analyse différentielle de courant</title>
+
+      <para>Cette attaque s&apos;appuie sur des relevés de 
+      consommation, tout comme la SPA, mais un traitement statistique 
+      approprié permet de glaner de l&apos;information à partir de 
+      relevés moins précis.</para>
+
+      <figure id="dpa1.png">
+
+        <title>Extraction de la clé</title>
+
+        <mediaobject><imageobject><imagedata fileref="dpa1.png"
+         format="PNG" width="100%"/></imageobject></mediaobject>
+      </figure>
+
+      <para>Le traitement statistique s&apos;appuie sur le maximum de 
+      vraisemblance d&apos;une hypothèse pour obtenir le secret. Dans 
+      un premier temps, une analyse de l&apos;algorithme attaqué est 
+      nécessaire pour découper le problème en sous problèmes plus 
+      petits, problèmes dont on connait soit l&apos;entrée, soit la 
+      sortie, et qui utilise un secret (méthode &quot;diviser pour 
+      regner&quot;). Pour chaque sous problème, une hypothèse est faite 
+      quand au secret qu&apos;il manipule, puis les données connues 
+      (entrée ou sortie) sont fournies à un oracle qui sépare en deux 
+      groupes les relevés de consommation associés. Considérant que le 
+      secret manipulé influe sur la consommation de courant, il est 
+      possible de constater le bien fondé de l&apos;hypothèse en 
+      mesurant l&apos;écart entre les 2 groupes de traces formés. En 
+      effet, si l&apos;hypothèse est correcte, l&apos;oracle a séparé 
+      les traces en fonction de la valeur des données inconnues (test 
+      sur un bit: 0 ou 1 en entrée ou sortie selon la donnée connue). 
+      La différence entre la moyenne des 2 ensembles correspond à 
+      l&apos;influence des données traitées (du moins un bit des 
+      données) sur la consommation. Dans le cas où l&apos;hypothèse est 
+      fausse, l&apos;oracle ne peut déterminer la donnée inconnue, et 
+      donc ne peux classer les traces en fonction. La séparation en 2 
+      ensembles est quasi-aléatoire, par conséquent leur moyenne ne 
+      présente pas de différence notable. En testant successivement 
+      toutes les hypothèses possibles concernant un sous problème 
+      (recherche exhaustive sur ensemble très réduit), il est possible 
+      de détecter l&apos;hypothèse la plus vraisemblable, celle qui 
+      correspond à la séparation en 2 sous ensembles très différents et 
+      d&apos;en déduire la valeur du secret manipulé. Appliquée à 
+      chaque sous problème, cette méthode permet d&apos;extraire, selon 
+      l&apos;algorithme, tout ou partie du secret manipulé.</para>
+
+      <figure id="dpa2.png">
+
+        <title>La consommation varie en fonction du clair</title>
+
+        <mediaobject><imageobject><imagedata fileref="dpa2.png"
+         format="PNG" width="100%"/></imageobject></mediaobject>
+      </figure>
+
+      <para>Dans le cas d&apos;un chiffrement DES, on peut 
+      s&apos;intéresser à la consommation de courant durant le 16ème 
+      tour. Chaque tour utilise une sous clef (48b) dérivée de la clef 
+      maitre (56b). La sous clef est elle même découpée en 8 morceaux 
+      de 6 bits, qui sont utilisés pour produire les données de sortie 
+      du tour, qui correspond, dans le cas du dernier tour, au message 
+      chiffré. La corrélation existant entre les données en entrée, 
+      restreintes à un bit b impliquant le morceau de sous clef cherché 
+      et la consommation va permettre de deviner la clef. En effet, la 
+      fonction permettant de retrouver le bit source à partir du 
+      chiffré utilise le morceau de sous clef cherché.</para>
+
+      <para>En premier lieu, il est nécessaire de récupérer des traces 
+      de consommation électrique (consommation en fonction du temps), 
+      associées au chiffré obtenu. Ensuite on choisit une valeur K pour 
+      le morceau de sous clef à trouver. Cette valeur permet, à 
+      l&apos;aide d&apos;une fonction permettant d&apos;inverser 
+      l&apos;effet du dernier tour de DES, de trouver une partie de la 
+      valeur d&apos;entrée de ce tour, dont le bit b. On sépare les 
+      traces suivant que ce bit est estimé a 0 ou 1. On calcule la 
+      trace moyenne pour chaque groupe, puis la différence des 2 traces 
+      moyennes. A partir de la trace différentielle, il est possible de 
+      voir si la valeur K de la clé choisie est correcte. Explications: 
+      si K est faux, la probabilité que le bit b, calculé à partir de K 
+      et du chiffré, soit exacte est environ 1/2. Dans ce cas, la 
+      séparation faite entre les traces de consommation est aléatoire, 
+      les moyennes effectuées dans chaque sous groupe n&apos;ont pas 
+      de raison de différer, la trace différentielle est donc proche de 
+      0 (présence de bruit). Par contre, si la valeur de K est 
+      correcte, alors b est calculé correctement, et les sous groupes 
+      sont bien classés en fonction de l&apos;entrée. Dans ce cas la 
+      trace différentielle présente des pics aux endroits où la valeur 
+      de b influe sur la consommation electrique (car la consommation 
+      est liée aux valeurs d&apos;entrée).</para>
+
+      <figure id="dpa3.png">
+
+        <title>Différence caractéristique et validité de la clé</title>
+
+        <mediaobject><imageobject><imagedata fileref="dpa3.png"
+         format="PNG" width="100%"/></imageobject></mediaobject>
+      </figure>
+
+      <para>Un morceau de sous clef ne comportant que 6 bits, il est 
+      nécessaire de tester 64 possibilités pour découvrir un morceau de 
+      sous clef. En appliquant cette méthode pour chacun des 8 morceaux 
+      de sous clef, il est possible de la deviner avec un nombre 
+      d&apos;opérations finalement assez restreint. On peut ensuite en 
+      déduire la clef maitresse, par force brute par exemple.</para>
+
+    </sect1>
+
+    <sect1 id="sec_cpa">
+
+      <title>Attaque par corrélation</title>
+
+      <para>L&apos;attaque par DPA permet de trouver la clé, mais elle 
+      nécessite un nombre élevé de traces de mesures. En effet, 
+      c&apos;est l&apos;influence d&apos;un seul bit sur la 
+      consommation qui est prise en compte. L&apos;influence des autres 
+      bits est alors considérée comme du bruit, qui se résorbe avec 
+      l&apos;augmentation du nombre de courbes. Par ailleurs, la 
+      détection des pics au cours de la DPA est rendue difficile par 
+      l&apos;apparition fréquente de &quot;pics fantômes&quot;. Ces 
+      pics se manifestent à coté du pic principal, ou bien 
+      apparaissent même si l&apos;hypothèse sur la clé est fausse. La 
+      hauteur de ces pics peut dépasser celle du pic principal, 
+      engendrant des erreurs dans l&apos;interprétation du résultat. 
+      L&apos;efficacité de la DPA repose en fait sur 
+      l&apos;indépendance du bit obsvervé avec les autres bits du même 
+      mot, et sur l&apos;absence de lien entre la consommation et le 
+      bit observé, sauf au moment ou celui ci est effectivement 
+      observé. Or il apparait que ces pré-requis ne sont pas respectés. 
+      Les valeurs des bits ne sont pas indépendantes, car elle sont 
+      assujetties au design des S-Box (dans le cas du DES), et sont 
+      donc possiblement corrélées. Par ailleurs, les bits ne sont pas 
+      manipulés qu&apos;une seule fois, et leur influence se diffuse 
+      dans le temps. Ces raisons expliquent la présence des pics 
+      fantômes.</para>
+
+      <para>Pour parer ce phénomène particulièrement génant a été 
+      introduit le concept de CPA, ou Correlation Power Analysis (voir 
+      <xref linkend="Brier2004"/>). L&apos;idée est de mieux exploiter 
+      le modèle de fuite, en remarquant que celui-ci crée une relation 
+      linéaire liant la consommation et la distance de hamming entre les
+      données manipulées et une valeur constante, cette constante dépendant de 
+      l&apos;architecture. La prise en compte de cette linéarité 
+      autorise la détection de la bonne hypothèse de sous clé (le 
+      fonctionnement global de la DPA est inchangé) simplement par 
+      l&apos;observation du coefficient de corrélation maximum.</para>
+
+      <para>
+
+        L&apos;application de la CPA suit les étapes suivantes, 
+        lorsqu&apos;elle est appliquée à l&apos;algorithme DES:
+        <orderedlist spacing="compact">
+
+          <listitem>
+
+            <para>Choix d&apos;un tour (généralement le premier ou le 
+            dernier, selon que l&apos;on dispose de l&apos;accès aux 
+            messages clairs ou aux messages chiffrés) et d&apos;une 
+            S-Box</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Énumération des hypothèses concernant la valeur 
+            d&apos;une sous clé pour ce tour.</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Prendre une valeur de sous clé, calculer la valeur 
+            des données manipulées en fonction de cette hypothèse, puis 
+            la distance de Hamming entre cette valeur et la constante. 
+            On obtient alors une distance Di pour chaque courbe 
+            i.</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Calculer, pour chaque instant t, le coefficient de 
+            corrélation entre les Di et les valeurs des courbes i à cet 
+            instant t. Le maximum de la courbe des coefficients de 
+            corrélation en fonction du temps est alors associé à 
+            l&apos;hypothèse.</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Lorsque chaque hypothèse a été traitée, 
+            l&apos;hypothèse qui est associée au coefficient de 
+            corrélation le plus élevé est considérée comme la bonne 
+            hypothèse. Un morceau de sous clé est alors trouvé.</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Les morceaux de sous clé restants sont obtenus en 
+            réitérant les précédentes étapes sur les autres S-Box, tout 
+            comme dans le cas de la DPA.</para>
+
+          </listitem>
+
+        </orderedlist>
+
+      </para>
+
+      <para>La CPA est une approche qui permet de réduire la quantité 
+      de courbes nécessaire tout en facilitant la détection des bonnes 
+      hypothèses, c&apos;est pourquoi nous avons souhaité 
+      l&apos;introduire dons notre laboratoire d&apos;attaques.</para>
+
+    </sect1>
+
+  </chapter>
+
+  <chapter>
+
+    <title>Conclusion</title>
+
+    <para>A l'issue de ce projet, nous pouvons mettre à la disposition
+    d'Ingenico notre étude documentaire, ainsi qu'une implémentation
+    sous le logiciel Matlab des attaques par DPA et CPA. Cet ensemble
+    représente une part non négligeable du laboratoire d'attaques, mais il
+    doit toutefois, pour son utilisation en production,  être associé à la
+    chaine d'acquisition réalisée par la seconde équipe d'élèves ingénieurs,
+    et disposer d'une interface de commande, qu'il reste à développer.</para>
+
+    <para>Ce projet de fin d'étude a été pour nous l'occasion de nous investir
+    une nouvelle fois dans un projet dont l'envergure dépasse celle des
+    incontournables (mais néanmoins formateurs) travaux pratiques. Au contact
+    d'une entreprise, nous avons dû faire montre, en plus de nos compétences
+    techniques, de qualité d'organisation et de communication. Via la mise en
+    place des outils de travail collaboratif, la rédaction d'un cahier des
+    charges précis et le suivi régulier de la documentation et des réunions,
+    nous avons fait preuve du sérieux et du professionnalisme qu'Ingenico
+    était en droit d'attendre de notre part.</para>
+
+    <para>En outre, et concernant plus particulièrement le sujet de ce projet,
+    nous avons découvert un pan entier de la cryptanalyse que nous ne
+    connaissions pas. En tant qu'étudiant spécialisé dans la sécurité
+    des systèmes, cela représentait un manque flagrant, surtout lorsque l'on
+    prend en compte l'efficacité de ces attaques par canaux secondaires.
+    Grâce à ce projet, nous avons pu nous documenter et implémenter nous même
+    avec succès quelques unes de ces attaques. Retrouver une clé DES 56 bits en
+    seulement vingt minutes est une expérience qui aiguisera notre perception
+    de la sécurité globale d'un système, et nous rappelera le soin qu'il est
+    nécessaire d'apporter, dans ce domaine, à tous les détails.</para>
+
+  </chapter>
+
+  <bibliography>
+
+    <title>Bibliographie</title>
+
+    <para>Ci-dessous la liste des références utilisées lors de notre 
+    projet.</para>
+
+    <bibliodiv>
+
+      <bibliomixed id="Kocher98">
+
+        <surname>KOCHER</surname>
+         
+        <firstname>P. ,</firstname>
+         
+        <surname>JAFFE</surname>
+         
+        <firstname>J. ,</firstname>
+         
+        <surname>JUN</surname>
+         
+        <firstname>B.</firstname>
+        <title><emphasis>Differential Power Analysis.</emphasis></title>
+
+        <orgname>Cryptography Research Inc.</orgname>
+         [en ligne]. 
+        <date>1998.</date>
+         
+        <bibliomisc>http://www.cryptography.com/resources/whitepapers/DPA.pdf</bibliomisc>
+      </bibliomixed>
+
+      <bibliomixed id="Kelsey00">
+
+        <surname>KELSEY</surname>
+         
+        <firstname>J.,</firstname>
+         
+        <surname>SCHNEIER</surname>
+         
+        <firstname>B.,</firstname>
+         
+        <surname>WAGNER</surname>
+         
+        <firstname>D.,</firstname>
+         
+        <surname>HALL</surname>
+         
+        <firstname>C..</firstname>
+        <title><emphasis>Side Channel Cryptanalysis of Product 
+        Ciphers.</emphasis></title>
+
+        [en ligne]. 
+        <date>2000.</date>
+         
+        <bibliomisc>http://www.schneier.com/paper-side-channel.html</bibliomisc>
+      </bibliomixed>
+
+      <bibliomixed id="Barel">
+
+        <surname>BAR-EL</surname>
+         
+        <firstname>H.</firstname>
+        <title><emphasis>Introduction to Side Channel 
+        Attacks.</emphasis></title>
+
+        <orgname>Discretix.</orgname>
+         [en ligne]. 
+        <date>2000.</date>
+         
+        <bibliomisc>http://www.hbarel.com/publications/Introduction_To_Side_Channel_Attacks.pdf</bibliomisc>
+      </bibliomixed>
+
+      <bibliomixed id="Percival">
+
+        <surname>PERCIVAL</surname>
+         
+        <firstname>C.</firstname>
+        <title><emphasis>Cache missing for fun and 
+        profit.</emphasis></title>
+
+        [en ligne]. 
+        <bibliomisc>http://www.daemonology.net/papers/htt.pdf</bibliomisc>
+      </bibliomixed>
+
+      <bibliomixed id="Messerges99">
+
+        <surname>MESSERGES</surname>
+         
+        <firstname>T. S.,</firstname>
+         
+        <surname>DABBISH</surname>
+         
+        <firstname>Ezzy A.,</firstname>
+         
+        <surname>SLOAN</surname>
+         
+        <firstname>R. H..</firstname>
+        <title><emphasis>Investigations of Power Analysis Attacks on 
+        Smartcards.</emphasis></title>
+
+        [en ligne]. 
+        <date>1999.</date>
+         
+        <bibliomisc>http://www.usenix.org/events/smartcard99/full_papers/messerges/messerges.pdf</bibliomisc>
+      </bibliomixed>
+
+      <bibliomixed id="Brier2004">
+
+        <surname>BRIER</surname>
+         
+        <firstname>E.,</firstname>
+         
+        <surname>CLAVIER</surname>
+         
+        <firstname>C.,</firstname>
+         
+        <surname>OLIVIER</surname>
+         
+        <firstname>F..</firstname>
+         
+        <orgname>Gemplus Card International France Security Technology 
+        Department.</orgname>
+        <title><emphasis>Correlation Power Analysis with a Leakage 
+        Model.</emphasis></title>
+
+        [en ligne]. 
+        <date>2004.</date>
+         
+        <bibliomisc>https://projects.itix.fr/studies/DPA/files/springerCryptoHardwareAndEmbeddedSystemsCHES2004.pdf</bibliomisc>
+      </bibliomixed>
+
+    </bibliodiv>
+
+  </bibliography>
+
+  <appendix id="app_schemas">
+
+    <title>Schémas électroniques</title>
+
+    <para>Sur la <xref linkend="precharged-bus.png"/> les broches du 
+    port B sont préchargées par l&apos;utilisateur à une valeur de son 
+    choix. (<emphasis>Source: 
+    http://www.fairchildsemi.com/ms/MS/MS-523.pdf</emphasis>)</para>
+
+    <figure id="precharged-bus.png">
+
+      <title>Bus préchargé</title>
+
+      <mediaobject><imageobject><imagedata fileref="precharged-bus.png"
+       format="PNG" width="100%"/></imageobject></mediaobject>
+    </figure>
+
+  </appendix>
+
+  <glossary>
+    <title>Glossaire</title>
+    <para>La plupart de ces définitions sont tirées du projet Wikipedia (<ulink url="http://fr.wikipedia.org/" />).</para>
+    <glossentry id="gl_ac">
+    	<glossterm>Analyse de courant</glossterm>
+	<glossdef>
+	  <para>En cryptanalyse de matériel cryptographique, l'analyse de consommation consiste à étudier les courants et tensions entrants et sortants d'un circuit dans le but de découvrir des informations secrètes comme la clé de chiffrement.</para>
+	</glossdef>
+    </glossentry>
+    <glossentry>
+    	<glossterm>ARM</glossterm>
+	<glossdef>
+	  <para>Les processeurs ARM, Acorn RISC Machines, sont basés sur une architecture RISC 32 bits. C'est une architecture simple et performante qui a été développée par la société ARM Ltd..</para>
+	</glossdef>
+    </glossentry>
+    <glossentry id="gl_cs">
+    	<glossterm>Attaque par canal secondaire</glossterm>
+	<glossdef>
+	  <para>Les attaques par canaux secondaires font partie d'une vaste famille de techniques cryptanalytiques qui exploitent des propriétés inattendues d'un algorithme de cryptographie lors de son implémentation logicielle ou matérielle.</para>
+	  <para>Cf. <xref linkend="ch_dpa" />.</para>
+	</glossdef>
+    </glossentry>
+    <glossentry>
+    	<glossterm>CPA</glossterm>
+	<glossdef>
+	  <para>Correlation Power Analysis (Analyse de courant par corrélation, en français).</para>
+	  <para>Cf. <xref linkend="sec_cpa" />.</para>
+	</glossdef>
+    </glossentry>
+    <glossentry>
+    	<glossterm>DPA</glossterm>
+	<glossdef>
+	  <para>Differential Power Analysis (Analyse différentielle de courant, en français).</para>
+	  <para>Cf. <xref linkend="sec_dpa" />.</para>
+	</glossdef>
+    </glossentry>
+    <glossentry>
+    	<glossterm>Power analysis</glossterm>
+	<glossdef>
+	  <para>Voir <xref linkend="gl_ac" /></para>
+	</glossdef>
+    </glossentry>
+    <glossentry>
+    	<glossterm>Side Channel Attack</glossterm>
+	<glossdef>
+	  <para>Voir <xref linkend="gl_cs" />.</para>
+	</glossdef>
+    </glossentry>
+    <glossentry>
+    	<glossterm>SPA</glossterm>
+	<glossdef>
+	  <para>Simple Power Analysis (Analyse simple de courant).</para>
+	  <para>Cf. <xref linkend="sec_spa" />.</para>
+	</glossdef>
+    </glossentry>
+  </glossary>
+
+<colophon>
+  <para>
+    Ce document a été rédigé avec l'éditeur de texte Emacs <ulink url="http://www.gnu.org/software/emacs"/> en utilisant le langage de description de publication Docbook, version 4.2 XML <ulink url="http://www.docbook.org"/>. Les différents documents ou publications en résultant ont été générés grâce, entre autres, aux logiciels libres suivants:
+<itemizedlist>
+  <listitem>
+    <simpara>
+      Apache-Xerces <ulink url="http://xerces.apache.org"/>, un analyseur XML
+    </simpara>
+  </listitem>
+  <listitem>
+    <simpara>
+      Apache-Xalan <ulink url="http://xalan.apache.org"/>, un processeur de transformation XSLT
+    </simpara>
+  </listitem>
+  <listitem>
+    <simpara>
+      Apache-Fop <ulink url="http://xmlgraphics.apache.org/fop"/>, un outil de rendu dirigé par XSL
+    </simpara>
+  </listitem>
+  <listitem>
+    <simpara>
+      Ainsi que d'autres bibliothèques du groupe de projets XML d'Apache <ulink url="http://xml.apache.org"/>
+    </simpara>
+  </listitem>
+</itemizedlist>
+  </para>
+</colophon>
+</book>
+
