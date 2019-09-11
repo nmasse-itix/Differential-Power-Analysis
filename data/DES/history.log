@@ -1,0 +1,81 @@
+
+sync_pattern -pattern 5500:7000 -in_dir curves -in_prefix demo -out_dir curves -out_prefix sync -search -10:10 -id 0:39 | tee sync_pattern.log
+
+mkdir cpa;
+for sbox in $(range 1 8);
+do
+	mkdir cpa/S$sbox;
+done
+
+for sbox in $(range 1 8);
+do
+	cpa_des -in_name demo.in.txt -out_dir cpa/S$sbox -out_prefix outbox.64_4 -sbox_type 64_4 -sbox $sbox:$sbox -guess 0:63 -id 0:39;
+done
+
+for sbox in $(range 8 8);
+do
+	cpa_des -in_name demo.in.txt -out_dir cpa/S$sbox -out_prefix outbox.64_8 -sbox_type 64_8 -sbox $sbox:$sbox -guess 0:63 -id 0:39;
+done
+
+for sbox in $(range 8 8);
+do
+	cpa_des -in_name demo.in.txt -out_dir cpa/S$sbox -out_prefix outbox.32_8 -sbox_type 32_8 -sbox $sbox:$sbox -guess 0:63 -id 0:39;
+done
+
+
+for sbox in $(range 1 8);
+do
+	for g in $(range 0 63);
+	do 
+		correlate_series.exe -in_dir curves -in_prefix demo -series cpa/S$sbox/outbox.64_4.s$sbox.p00.g$(printf %02d $g) -out_name cpa/S$sbox/demo.64_4.s$sbox.p00.g$(printf %02d $g).cor -id 0:39;
+	done | grep "] ;" | tee cpa/demo.S$sbox.log;
+done
+
+for sbox in $(range 1 8);
+do
+	for g in $(range 0 63);
+	do 
+		correlate_series.exe -in_dir curves -in_prefix sync -series cpa/S$sbox/outbox.64_4.s$sbox.p00.g$(printf %02d $g) -out_name cpa/S$sbox/sync.64_4.s$sbox.p00.g$(printf %02d $g).cor -id 0:39;
+	done | grep "] ;" | tee cpa/sync.S$sbox.log;
+done
+
+for sbox in $(range 8 8);
+do
+	for g in $(range 0 63);
+	do
+		correlate_series.exe -in_dir curves -in_prefix sync -series cpa/S$sbox/outbox.64_8.s$sbox.p00.g$(printf %02d $g) -out_name cpa/S$sbox/sync.64_8.s$sbox.p00.g$(printf %02d $g).cor -id 0:39;
+	done | grep "] ;" | tee cpa/sync.S$sbox.64_8.log;
+done
+
+for sbox in $(range 8 8);
+do
+	for g in $(range 0 63);
+	do
+		correlate_series.exe -in_dir curves -in_prefix sync -series cpa/S$sbox/outbox.32_8.s$sbox.p00.g$(printf %02d $g) -out_name cpa/S$sbox/sync.32_8.s$sbox.p00.g$(printf %02d $g).cor -id 0:39;
+	done | grep "] ;" | tee cpa/sync.S$sbox.32_8.log;
+done
+
+
+for s in $(range 1 8);
+do
+	echo ;
+	sort -k11 -r cpa/sync.S$s.log | head;
+done > cpa/sync.all.sorted.log
+
+for s in $(range 1 8);
+do
+	echo ;
+	sort -k11 -r cpa/demo.S$s.log | head;
+done > cpa/demo.all.sorted.log
+
+for s in $(range 8 8);
+do
+	echo ;
+	sort -k11 -r cpa/sync.S$s.64_8.log | head;
+done >> cpa/sync.all.sorted.log
+
+for s in $(range 8 8);
+do
+	echo ;
+	sort -k11 -r cpa/sync.S$s.32_8.log | head;
+done >> cpa/sync.all.sorted.log

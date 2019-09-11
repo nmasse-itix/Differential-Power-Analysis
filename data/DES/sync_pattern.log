@@ -1,0 +1,74 @@
+
+  +-----------------------------------------------------------------+
+  | +-------------------------------------------------------------+ |
+  | | sync_pattern : synchronize waveforms by pattern recognition | |
+  | +-------------------------------------------------------------+ |
+  +-----------------------------------------------------------------+
+  Version 1.05.001 (Mar  3 2005 at 13:57:25)
+
+Command: c:\gemplus\bin\win32\sync_pattern.exe -pattern 5500:7000 -in_dir curves -in_prefix demo -out_dir curves -out_prefix sync -search -10:10 -id 0:39 
+
+[-nb_file int]       number of file per directory (default = 1000)                
+[-in_dir string]     input directory name         (default = ".")               
+[-in_prefix string]  input file prefix            (mandatory)                     
+[-in_mark int]       only process marked files                                    
+[-out_dir string]    output directory name        (default = "./sync_pattern")  
+[-out_prefix string] output file prefix           (default = in_prefix)           
+[-reference string]  reference file name          (default = first processed file)
+[-pattern range]     pattern on reference file    (mandatory)                     
+[-search range]      relative to pattern edges    (default = 0:1:0)               
+[-nearness int]      search position tolerance    (default = 0)                   
+[-absolute]          likeness is quadratic mean                                   
+                     rather than variance                                         
+[-minzeropad]        minimize zero padding: single             
+                     side instead of both sides   (default = not minimized)                     
+[-id range]          files taken in consideration (mandatory)                     
+
+Uses files 0 to 39 with step = 1
+Pattern extends from 5500 to 7000
+Search windows extends from -10 to 10 w.r.t. the pattern
+
+ Id   : Score - Point
+00000 :  0000 - 005500
+00001 :  0128 - 005502
+00002 :  0053 - 005501
+00003 :  0040 - 005501
+00004 :  0041 - 005500
+00005 :  0062 - 005502
+00006 :  0040 - 005501
+00007 :  0103 - 005501
+00008 :  0038 - 005500
+00009 :  0096 - 005500
+00010 :  0071 - 005501
+00011 :  0074 - 005500
+00012 :  0106 - 005501
+00013 :  0102 - 005501
+00014 :  0106 - 005502
+00015 :  0081 - 005501
+00016 :  0095 - 005502
+00017 :  0043 - 005501
+00018 :  0052 - 005500
+00019 :  0115 - 005500
+00020 :  0090 - 005500
+00021 :  0074 - 005502
+00022 :  0061 - 005501
+00023 :  0131 - 005500
+00024 :  0057 - 005501
+00025 :  0108 - 005500
+00026 :  0050 - 005502
+00027 :  0058 - 005500
+00028 :  0055 - 005500
+00029 :  0101 - 005500
+00030 :  0049 - 005500
+00031 :  0051 - 005500
+00032 :  0099 - 005500
+00033 :  0100 - 005501
+00034 :  0109 - 005502
+00035 :  0135 - 005501
+00036 :  0062 - 005501
+00037 :  0069 - 005500
+00038 :  0078 - 005501
+00039 :  0134 - 005500
+
+Correct end
+
